@@ -64,8 +64,12 @@ float x, y;
 		return sqrt(x * x + y * y);
 	};
 
-Vector2 Vector2::unit()					//vector of length 1
+	Vector2 Vector2::unit()					//vector of length 1
 	{
+		/*
+		дублировать код не нужно.
+		return Vector2(x, y) / length();
+		*/
 		return Vector2(x / sqrt(x * x + y * y), y / sqrt(x * x + y * y));
 	};
 
@@ -79,6 +83,10 @@ Vector2 Vector2::unit()					//vector of length 1
 
 	Vector2 Vector2::getRotatedDegrees(const float f)
 	{
+		/*
+		 fixit: когда поправите rotate, то getRotated можно в 1 строку написать:
+		 return Vector(x, y).rotate(angle);
+		*/
 		return Vector2(x * cos(f * pi / 180) - y * sin(f * pi / 180), y * cos(f * pi / 180) + x * sin(f * pi / 180));
 	};
 
