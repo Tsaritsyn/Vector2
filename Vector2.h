@@ -5,6 +5,8 @@ using namespace std;
 struct Vector2
 {
 	float x, y;
+	
+	// fixit: реализация в cpp должна быть
 	Vector2(float a = 0, float b = 0)
 	{
 		x = a;
@@ -19,6 +21,17 @@ struct Vector2
 	float operator ^ (const Vector2& other) const;	//length of vector multiplication
 	Vector2 operator * (const float k) const;		//right multiplication with a number
 	Vector2 operator / (const float k) const;
+	
+	/*
+	fixit:
+	
+	Vector2 unit() const;					//vector of length 1
+	Vector2 normal() const;
+	float length() const;
+	Vector2& rotateDegrees(const float f);
+	Vector2 getRotatedDegrees(const float f) const;
+	
+	*/
 	Vector2 unit();					//vector of length 1
 	Vector2 normal();
 	float length();
