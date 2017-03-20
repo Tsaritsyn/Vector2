@@ -1,67 +1,29 @@
-#include <SFML\Graphics.hpp>
-#include <iostream>
-#include <cmath>
+#include "SFML\Graphics.hpp"
 #include <vector>
-#include "Bullet.h"
-#include "Vector2.h"
-#include "Lazer.h"
+#include <cmath>
+#include "Particle.h"
+#include <cstdlib>
+#include <iostream>
+
+const int width = 800;
+const int heigth = 600;
 
 int main()
 {
-	//создание окна с заданными размерами
-	int width = 800;
-	int heigth = 600;
 	sf::RenderWindow window(sf::VideoMode(width, heigth), "My window");
-	
-	//переменная, в которую будут записываться произошедшие события
 	sf::Event event;
-
-	//скачивание текстуры из файла
-	sf::Texture texture;
-	/*if (!texture.loadFromFile("tiger.png"))
-	{
-		std::cout << "Foo!!!\n";
-		return 0;
-	}*/
-	texture.loadFromFile("hero.png");
-	//создание спрайта, заполненного текстурой
-	sf::Sprite circle;
-	circle.setTexture(texture);
-	
-	//circle.setTextureRect(sf::IntRect(0, 192, 96, 96));
-
-	//задание масштаба и положения центра
-	float k = 0.5;
-	circle.setScale(sf::Vector2f(k, k));
-	sf::Vector2u buf = circle.getTexture()->getSize();
-	sf::Vector2f size = sf::Vector2f(buf.x, buf.y) * 0.5f;
-	circle.setOrigin(size.x, size.y);
-
-	//задание положения
-	circle.setPosition(sf::Vector2f(width / 2, heigth / 2));
-	
-	//скорость движения героя, пикселей/секунду
-	int v = 50;
-
-	std::vector < Bullet > queue;
-
-	//программные часы
 	sf::Clock clock;
-	float prevtime = 0;
-
-	
-	//Bullet bullet();
-	//std::cout << bullet.posx << bullet.posy << std::endl;
-
-	//время, прошедшее с появления последней пули
-	sf::Time bullet_time = clock.getElapsedTime();
+	float prevtime = 0.0;
+	float particle_time = 0.0;
+	float time = 0.0;
+	std::vector < Particle > queue;
 
 	while (window.isOpen())
 	{
 		//выяснение длительности существование кадра
-		sf::Time time = clock.getElapsedTime();
-		float dt = time.asSeconds() - prevtime;
-		prevtime = time.asSeconds();
+		time = clock.getElapsedTime().asSeconds();
+		float dt = time - prevtime;
+		prevtime = time;
 
 		while (window.pollEvent(event))
 		{
@@ -75,84 +37,47 @@ int main()
 		//очистка окна и заливка зелёным
 		window.clear(sf::Color::Green);
 
-		//взятие координат курсора
-		sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
-		//взятие координат героя
-		sf::Vector2f bullet_pos = circle.getPosition();
-		sf::Vector2f d = sf::Vector2f(mouse_pos.x, mouse_pos.y) - bullet_pos;
-		//поворот героя на курсор
-		circle.setRotation(atan2f(d.y, d.x) * 180 / 3.14 + 90);
-		
-		//смещение героя стрелками с проверкой на выход за границы экрана
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && circle.getPosition().x > 0)
-		{
-			circle.move(-v * dt, 0);
-		};
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && circle.getPosition().x < width - 2 * size.x)
-		{
-			circle.move(v * dt, 0);
-		};
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && circle.getPosition().y > 0)
-		{
-			circle.move(0, -v * dt);
-		};
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && circle.getPosition().y < heigth - 2 * size.y)
-		{
-			circle.move(0, v * dt);
-		};
-
-		//создание новой пули при нажатой ЛКМ, если с момента создания предыдущей прошло больше 0.1 секунды
-		if ((sf::Mouse::isButtonPressed(sf::Mouse::Left)) && ((bullet_time.asSeconds() - time.asSeconds()) < - 0.1))
-		{
-			//взятие координат курсора
-			mouse_pos = sf::Mouse::getPosition(window);
-			//взятие координат героя
-			bullet_pos = circle.getPosition();
-			d = sf::Vector2f(mouse_pos.x, mouse_pos.y) - bullet_pos;
-			//нацеливание пули на курсор
-			Vector2 vel(100, 0);
-			vel.rotateDegrees(atan2f(d.y, d.x) * 180 / 3.14);
-
-			float r = 5.0;
-			//размещение пули по центру героя
-			Bullet bullet(vel, bullet_pos.x - r, bullet_pos.y - r, r);
-			queue.push_back(bullet);
-			//запоминание времени создания пули
-			bullet_time = clock.getElapsedTime();
-		}
-
-		//отрисовка лазера при нажатии ПКМ
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+		//создание новой частицы при нажатой ЛКМ, если с момента создания предыдущей прошло больше 0.2 секунды
+		if ((sf::Mouse::isButtonPressed(sf::Mouse::Left)) && ((particle_time - time) < -0.2))
 		{
 			//взятие координат курсора
 			sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
-			//взятие координат героя
-			sf::Vector2f circle_pos = circle.getPosition();
-
-			d = sf::Vector2f(mouse_pos.x, mouse_pos.y) - circle_pos;
-			Lazer lazer(d, circle_pos);
-			lazer.draw(window);
+			//задание случайной скорости
+			int k = rand() % 500 + 1;
+			int a = rand() % 360 + 1;
+			sf::Vector2f v(k * cos(3.14159 * a / 180), k * sin(3.14159 * a / 180));
+			sf::Vector2f pos(mouse_pos.x, mouse_pos.y);
+			Particle newp(pos, v);
+			queue.push_back(newp);
+			
+			//запоминание времени создания частицы
+			particle_time = clock.getElapsedTime().asSeconds();
 		}
 
-		//отрисовка героя в окне
-		window.draw(circle);
-
-		//отрисовка выпущенных пуль, находящихся внутри экрана, их передвижение
+		//просчёт столкновений
 		for (unsigned int i = 0; i < queue.size(); i++)
 		{
-			if (queue[i].posx > width || queue[i].posx < 0 || queue[i].posy > heigth || queue[i].posy < 0)
-			{}
-			else
+			//с другими частицами
+			for (unsigned int j = i + 1; j < queue.size(); j++)
 			{
-				queue[i].draw(window);
-				queue[i].move(dt);
+				if (queue[i].ifCollision(queue[j]))
+				{
+					collision(queue[i], queue[j]);
+				}
 			}
+			//со стенками
+			queue[i].collisionToWall(queue[i].ifCloseToWall(width, heigth));
+			
+
+			//отрисовка и передвижение частиц
+			queue[i].draw(window);
+			queue[i].move(dt);
 		}
 		
 
 		//вывод содержимого окна на экран
 		window.display();
 	}
-	
+
 	return 0;
-} 
+}

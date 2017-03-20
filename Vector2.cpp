@@ -6,6 +6,12 @@ const float pi = 3.14;
 
 float x, y;
 
+Vector2::Vector2(float a, float b)
+{
+	x = a;
+	y = b;
+};
+
 	Vector2 Vector2::operator + (const Vector2& other) const
 	{
 		return Vector2(x + other.x, y + other.y);
@@ -64,13 +70,10 @@ float x, y;
 		return sqrt(x * x + y * y);
 	};
 
-	Vector2 Vector2::unit()					//vector of length 1
+Vector2 Vector2::unit()					//vector of length 1
 	{
-		/*
-		дублировать код не нужно.
-		return Vector2(x, y) / length();
-		*/
-		return Vector2(x / sqrt(x * x + y * y), y / sqrt(x * x + y * y));
+		//return Vector2(x / sqrt(x * x + y * y), y / sqrt(x * x + y * y));
+		return Vector2(x / length(), y / length());
 	};
 
 	void Vector2::rotateDegrees(const float f)
@@ -83,10 +86,6 @@ float x, y;
 
 	Vector2 Vector2::getRotatedDegrees(const float f)
 	{
-		/*
-		 fixit: когда поправите rotate, то getRotated можно в 1 строку написать:
-		 return Vector(x, y).rotate(angle);
-		*/
 		return Vector2(x * cos(f * pi / 180) - y * sin(f * pi / 180), y * cos(f * pi / 180) + x * sin(f * pi / 180));
 	};
 
@@ -104,3 +103,14 @@ Vector2 operator * (float k, const Vector2& v)	//right multiplication with a num
 {
 	return Vector2(v.x * k, v.y * k);
 };
+
+Vector2 convert(sf::Vector2f& v)
+{
+	Vector2 res(v.x, v.y);
+	return res;
+}
+
+sf::Vector2f convert(Vector2 v)
+{
+	return sf::Vector2f(v.x, v.y);
+}
