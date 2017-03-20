@@ -1,52 +1,83 @@
-/*
-РќРµ РЅСѓР¶РЅРѕ СЃРѕР·РґР°РІР°С‚СЊ РѕС‚РґРµР»СЊРЅС‹Р№ СЂРµРїРѕР·РёС‚РѕСЂРёР№ РїРѕРґ РєР°Р¶РґРѕРµ СѓРїСЂР°Р¶РЅРµРЅРёРµ.
-РќСѓР¶РЅРѕ Р±С‹Р»Рѕ СЃРѕР·РґР°С‚СЊ РѕРґРёРЅ СЂРµРїРѕР·РёС‚РѕСЂРёР№ sem4 РЅР° РІРµСЃСЊ СЃРµРјРµСЃС‚СЂ.
-РџРѕРїСЂРѕСЃРёС‚Рµ РРІР°РЅР° РёР»Рё РµС‰С‘ РєРѕРіРѕ-РЅРёР±СѓРґСЊ, РєС‚Рѕ РІ РїСЂРѕС€Р»РѕРј СЃРµРјРµСЃС‚СЂРµ Рє РЅР°Рј РЅР° СЃРµРјРёРЅР°СЂС‹ С…РѕРґРёР», 
-РїРѕРґСЂРѕР±РЅРµРµ РїСЂРѕРєРѕРјРјРµРЅС‚РёСЂРѕРІР°С‚СЊ, РєР°Рє РјС‹ СЃРґР°РІР°С‚СЊ СѓРїСЂР°Р¶РЅРµРЅРёСЏ.
-
-Р’Р°С€ РІРµРєС‚РѕСЂ2 РїРѕСЃРјРѕС‚СЂСЋ РґРѕ С‡РµС‚РІРµСЂРіР°.
-*/
-
+#include "SFML\Graphics.hpp"
+#include <vector>
+#include <cmath>
+#include "Particle.h"
+#include <cstdlib>
 #include <iostream>
-#include "Vector2.h"
 
-using namespace std;
+const int width = 800;
+const int heigth = 600;
 
 int main()
 {
-	Vector2 a, b;
-	cout << "Write the first vector\n";
-	cin >> a;
-	cout << "Repeat vector: " << a;
-	cout << "Opposite vector: " << -a;
-	cout << "Length of vector: " << a.length() << endl;
-	cout << "Vector of 1 length: " << a.unit();
-	cout << "Normal vector: " << a.normal();
-	
-	float k;
-	cout << "Write a number\n";
-	cin >> k;
-	cout << "Multiplications of vector: " << a * k << k * a;
-	cout << "Division of vector: " << a / k;
+	sf::RenderWindow window(sf::VideoMode(width, heigth), "My window");
+	sf::Event event;
+	sf::Clock clock;
+	float prevtime = 0.0;
+	float particle_time = 0.0;
+	float time = 0.0;
+	std::vector < Particle > queue;
 
-	float f;
-	cout << "Write an angle in degrees\n";
-	cin >> f;
-	cout << "Rotated vector: " << a.getRotatedDegrees(f);
-	a.rotateDegrees(f);
-	cout << "New first: " << a;
-	
-	cout << "Write the second vector\n";
-	cin >> b;
-	cout << "Sum of vectors: " << a + b;
-	a += b;
-	cout << "New first: " << a;
-	cout << "Difference of vectors: " << a - b;
-	b -= a;
-	cout << "New second: " << b;
-	cout << "Scalar multiplication: " << a * b << endl;
-	//cout << "Vector multiplication: " << a ^ b;
+	while (window.isOpen())
+	{
+		//выяснение длительности существование кадра
+		time = clock.getElapsedTime().asSeconds();
+		float dt = time - prevtime;
+		prevtime = time;
 
-	
+		while (window.pollEvent(event))
+		{
+			//закрытие окна при нажатии на крестик или Escape
+			if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+			{
+				window.close();
+			}
+		}
+
+		//очистка окна и заливка зелёным
+		window.clear(sf::Color::Green);
+
+		//создание новой частицы при нажатой ЛКМ, если с момента создания предыдущей прошло больше 0.2 секунды
+		if ((sf::Mouse::isButtonPressed(sf::Mouse::Left)) && ((particle_time - time) < -0.2))
+		{
+			//взятие координат курсора
+			sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
+			//задание случайной скорости
+			int k = rand() % 500 + 1;
+			int a = rand() % 360 + 1;
+			sf::Vector2f v(k * cos(3.14159 * a / 180), k * sin(3.14159 * a / 180));
+			sf::Vector2f pos(mouse_pos.x, mouse_pos.y);
+			Particle newp(pos, v);
+			queue.push_back(newp);
+			
+			//запоминание времени создания частицы
+			particle_time = clock.getElapsedTime().asSeconds();
+		}
+
+		//просчёт столкновений
+		for (unsigned int i = 0; i < queue.size(); i++)
+		{
+			//с другими частицами
+			for (unsigned int j = i + 1; j < queue.size(); j++)
+			{
+				if (queue[i].ifCollision(queue[j]))
+				{
+					collision(queue[i], queue[j]);
+				}
+			}
+			//со стенками
+			queue[i].collisionToWall(queue[i].ifCloseToWall(width, heigth));
+			
+
+			//отрисовка и передвижение частиц
+			queue[i].draw(window);
+			queue[i].move(dt);
+		}
+		
+
+		//вывод содержимого окна на экран
+		window.display();
+	}
+
 	return 0;
 }

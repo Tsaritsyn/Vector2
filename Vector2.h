@@ -1,17 +1,12 @@
 #pragma once
 #include <iostream>
+#include <SFML\Graphics.hpp>
 using namespace std;
 
 struct Vector2
 {
 	float x, y;
-	
-	// fixit: реализация в cpp должна быть
-	Vector2(float a = 0, float b = 0)
-	{
-		x = a;
-		y = b;
-	};
+	Vector2(float a = 0, float b = 0);
 	Vector2 operator + (const Vector2& other) const;
 	Vector2& operator += (const Vector2& other);
 	Vector2 operator - (const Vector2& other) const;
@@ -21,24 +16,16 @@ struct Vector2
 	float operator ^ (const Vector2& other) const;	//length of vector multiplication
 	Vector2 operator * (const float k) const;		//right multiplication with a number
 	Vector2 operator / (const float k) const;
-	
-	/*
-	fixit:
-	
-	Vector2 unit() const;					//vector of length 1
-	Vector2 normal() const;
-	float length() const;
-	Vector2& rotateDegrees(const float f);
-	Vector2 getRotatedDegrees(const float f) const;
-	
-	*/
 	Vector2 unit();					//vector of length 1
 	Vector2 normal();
 	float length();
 	void rotateDegrees(const float f);
 	Vector2 getRotatedDegrees(const float f);
+	
 };
 
 istream& operator >> (istream& stream, Vector2& v);	//input
 ostream& operator << (ostream& stream, const Vector2& v);	//output
 Vector2 operator * (float k, const Vector2& v);	//right multiplication with a number
+Vector2 convert(sf::Vector2f& v);
+sf::Vector2f convert(Vector2 v);
